@@ -22,6 +22,51 @@ tf.flags.DEFINE_integer("num_steps", 1000, "How many times to update weights")
 tf.flags.DEFINE_integer("learning_rate", 0.0001, "Learning rate, epsilon")
 
 
+def read_data():
+
+	return data
+
+class Input_sylner():
+	"""The input data."""
+	def __init__(self, config, data, name=None):
+		self.batch_size = batch_size
+		self.num_steps = num_steps
+		# self.epoch_size = ((len(data) // batch_size) - 1) // num_steps
+		self.input_data, self.targets = reader.ptb_producer(data, batch_size, num_steps, name=name)
+
+		self.inputs_seq_char = reader.some_function()#tf.placeholder(tf.int32, shape=[None, 3, None])
+		self.inputs_index_target = reader.some_function()#tf.placeholder(tf.int32, shape=[2]) # Start-index and end-index
+		self.labels_train = reader.some_function()#tf.placeholder(tf.int32, shape=[None, num_class])
+
+class Model_sylner():
+	def __init__(self):
+		pass
+
+def model_sylner(inputs_seq_char, inputs_index_target, params):
+	X = inputs_seq_char
+	index0, index1 = inputs_index_target
+	# Convert the raw input sequence into sequence of 3 channel embeddings
+	X1_context = tf.nn.embedding_lookup(embeddings_cho, X[-1, 0, :])
+	X2_context = tf.nn.embedding_lookup(embeddings_jung, X[-1, 1, :])
+	X3_context = tf.nn.embedding_lookup(embeddings_jong, X[-1, 2, :])
+
+	# Do the same for target words
+	X1_target = tf.nn.embedding_lookup(embeddings_cho, X[-1, 0, index0:index1])
+	X2_target = tf.nn.embedding_lookup(embeddings_jung, X[-1, 1, index0:index1])
+	X3_target = tf.nn.embedding_lookup(embeddings_jong, X[-1, 2, index0:index1])
+
+	X_context = tf.concatenate([X1_context, X2_context, X3_context])
+	X_target = tf.concatenate([X1_target, X2_target, X3_target])
+
+	# 
+	for i in range(len(...)):
+
+
+
+	tf.contrib.rnn.BasicLSTMCell(size)
+
+	return pred
+
 # BUILDING THE COMPUTATIONAL GRAPH
 graph = tf.Graph()
 with graph.as_default():
@@ -30,17 +75,48 @@ with graph.as_default():
 	display_step = 10
 
 	# tf Graph input
-	len_input = 224*224*3
 	num_class = FLAGS.num_class # Normal or Abnormal
 
 	# Placeholders
-
 	count_step = tf.Variable(0, name="count_step")
 	
-	inputs_train = tf.placeholder(tf.int32, shape=[batch_size])
-	labels_train = tf.placeholder(tf.int32, shape=[batch_size, 1])
+	"""
+	[1,2,1]
+	->
+	[[1 3 5 6],
+	 [1 0 2 7],
+	 [1 3 5 6]]
+	"""
+	embedding_cho = tf.Variable(tf.random_uniform([num_char_cho, DIM_EMBED], -1.0, 1.0),
+								name="embeddings_cho")
+	embedding_jung = tf.Variable(tf.random_uniform([num_char_jung, DIM_EMBED], -1.0, 1.0),
+								name="embeddings_jung")
+	embedding_jong = tf.Variable(tf.random_uniform([num_char_jong, DIM_EMBED], -1.0, 1.0),
+								name="embeddings_jong")
+
+	inputs_seq_char = tf.placeholder(tf.int32, shape=[None, 3, None])
+	inputs_index_target = tf.placeholder(tf.int32, shape=[2]) # Start-index and end-index
+	labels_train = tf.placeholder(tf.int32, shape=[None, num_class]) # One-hot encoding
+	"""
+	"Correctness"
 	
-	test_dataset = tf.constant(test_examples, dtype=tf.int32)
+	Prediction given index, character, 
+
+	Network to extract context feature
+	Network to extract word feature
+	"""
+	
+	# Define loss, compute gradients
+	pred, labels = model_sylner(inputs_seq_char, inputs_index_target, params), labels_train
+	xentropy = tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=labels)
+	cost = tf.reduce_mean(xentropy)
+	gradients = tf.train.AdamOptimizer(learning_rate=learning_rate).compute_gradients(cost)
+	optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).apply_gradients(gradients)
+
+	# Evaluate model
+	# correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
+	# accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+
 
 	# Write summary for Tensorboard
 	tf.summary.scalar('loss', loss)

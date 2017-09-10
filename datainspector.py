@@ -42,11 +42,9 @@ def decompose_syllable(syllable):
     JONGSUNG_LIST = [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
     result = list()
-    keyword = syllable
-    # for keyword in split_keyword_list:
     # 한글 여부 check 후 분리
-    if re.match("[ㄱ-ㅣ가-힣]", keyword) is not None:
-        char_code = ord(keyword) - BASE_CODE
+    if re.match("[ㄱ-ㅣ가-힣]", syllable) is not None:
+        char_code = ord(syllable) - BASE_CODE
         char1 = int(char_code / CHOSUNG)
         result.append(CHOSUNG_LIST[char1])
         char2 = int((char_code - (CHOSUNG * char1)) / JUNGSUNG)
@@ -54,7 +52,7 @@ def decompose_syllable(syllable):
         char3 = int((char_code - (CHOSUNG * char1) - (JUNGSUNG * char2)))
         result.append(JONGSUNG_LIST[char3])
     else:
-        result.append(keyword)
+        result.append(syllable)
     return result
 
 with open("../../dev-data/2017klexpo/2016klpNER.base_train") as fo:

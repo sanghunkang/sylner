@@ -26,8 +26,8 @@ Some symbols are assumed to be the same. For instance, quotes and double quotes,
 
 
 ####
-Input: Sentence/Position(Index + length)
-Output: Probability that a word belongs to the category
+* Input: Sentence/Position(Index + length)
+* Output: Probability that a word belongs to the category
 
 
 
