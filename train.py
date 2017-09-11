@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 
 
-from models import *
+from models import TargetSubtractionModel
 
 FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_string("fpath_data_train", "../../dev-data/pickle/test_train.pickle", "The directory to save the model files in.")
@@ -38,34 +38,7 @@ class Input_sylner():
 		self.inputs_index_target = reader.some_function()#tf.placeholder(tf.int32, shape=[2]) # Start-index and end-index
 		self.labels_train = reader.some_function()#tf.placeholder(tf.int32, shape=[None, num_class])
 
-class Model_sylner():
-	def __init__(self):
-		pass
 
-def model_sylner(inputs_seq_char, inputs_index_target, params):
-	X = inputs_seq_char
-	index0, index1 = inputs_index_target
-	# Convert the raw input sequence into sequence of 3 channel embeddings
-	X1_context = tf.nn.embedding_lookup(embeddings_cho, X[-1, 0, :])
-	X2_context = tf.nn.embedding_lookup(embeddings_jung, X[-1, 1, :])
-	X3_context = tf.nn.embedding_lookup(embeddings_jong, X[-1, 2, :])
-
-	# Do the same for target words
-	X1_target = tf.nn.embedding_lookup(embeddings_cho, X[-1, 0, index0:index1])
-	X2_target = tf.nn.embedding_lookup(embeddings_jung, X[-1, 1, index0:index1])
-	X3_target = tf.nn.embedding_lookup(embeddings_jong, X[-1, 2, index0:index1])
-
-	X_context = tf.concatenate([X1_context, X2_context, X3_context])
-	X_target = tf.concatenate([X1_target, X2_target, X3_target])
-
-	# 
-	for i in range(len(...)):
-
-
-
-	tf.contrib.rnn.BasicLSTMCell(size)
-
-	return pred
 
 # BUILDING THE COMPUTATIONAL GRAPH
 graph = tf.Graph()
