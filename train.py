@@ -10,8 +10,7 @@ import time
 import numpy as np
 import tensorflow as tf
 
-
-from models import TargetSubtractionModel
+from models import SylnerModel
 
 FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_string("fpath_data_train", "../../dev-data/pickle/test_train.pickle", "The directory to save the model files in.")
@@ -43,58 +42,40 @@ class Input_sylner():
 # BUILDING THE COMPUTATIONAL GRAPH
 graph = tf.Graph()
 with graph.as_default():
+	sylnerModel = SylnerModel()
+
 	# Hyperparameters
 	learning_rate = FLAGS.learning_rate
 	display_step = 10
 
 	# tf Graph input
 	num_class = FLAGS.num_class # Normal or Abnormal
+	dim_embed = 12
 
 	# Placeholders
 	count_step = tf.Variable(0, name="count_step")
-	
-	"""
-	[1,2,1]
-	->
-	[[1 3 5 6],
-	 [1 0 2 7],
-	 [1 3 5 6]]
-	"""
-	embedding_cho = tf.Variable(tf.random_uniform([num_char_cho, DIM_EMBED], -1.0, 1.0),
-								name="embeddings_cho")
-	embedding_jung = tf.Variable(tf.random_uniform([num_char_jung, DIM_EMBED], -1.0, 1.0),
-								name="embeddings_jung")
-	embedding_jong = tf.Variable(tf.random_uniform([num_char_jong, DIM_EMBED], -1.0, 1.0),
-								name="embeddings_jong")
+	embedding_cho = tf.Variable(tf.random_uniform([num_char_cho, dim_embed], -1.0, 1.0), name="embeddings_cho")
+	embedding_jung = tf.Variable(tf.random_uniform([num_char_jung, dim_embed], -1.0, 1.0), name="embeddings_jung")
+	embedding_jong = tf.Variable(tf.random_uniform([num_char_jong, dim_embed], -1.0, 1.0), name="embeddings_jong")
 
-	inputs_seq_char = tf.placeholder(tf.int32, shape=[None, 3, None])
-	inputs_index_target = tf.placeholder(tf.int32, shape=[2]) # Start-index and end-index
-	labels_train = tf.placeholder(tf.int32, shape=[None, num_class]) # One-hot encoding
-	"""
-	"Correctness"
-	
-	Prediction given index, character, 
-
-	Network to extract context feature
-	Network to extract word feature
-	"""
+	batch_seq_s = tf.placeholder(tf.int32, shape=[None, max_length, 3])
+	batch_target_idx = tf.placeholder(tf.int32, shape=[None, 2]) # Start-index and end-index
+	batch_labels = tf.placeholder(tf.int32, shape=[None, num_class]) # One-hot encoding
 	
 	# Define loss, compute gradients
-	pred, labels = model_sylner(inputs_seq_char, inputs_index_target, params), labels_train
-	xentropy = tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=labels)
+	pred = sylnerModel.run_model(batch_seq_s, batch_target_idx)
+	xentropy = tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=batch_labels)
 	cost = tf.reduce_mean(xentropy)
 	gradients = tf.train.AdamOptimizer(learning_rate=learning_rate).compute_gradients(cost)
 	optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).apply_gradients(gradients)
 
 	# Evaluate model
-	# correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
-	# accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+	correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
+	accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 
 	# Write summary for Tensorboard
 	tf.summary.scalar('loss', loss)
-	tf.summary.histogram('W_nce', b_nce)
-	tf.summary.histogram('b_nce', b_nce)
 	merged = tf.summary.merge_all()
 
 	# Define saver to save/restore trained result

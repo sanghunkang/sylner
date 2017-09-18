@@ -9,91 +9,82 @@ import numpy as np
 import tensorflow as tf
 
 class BaseModel(object):
-	"""Inherit from this class when implementing new models."""
+	"""
+	Inherit from this class when implementing new models.
+	"""
+	def __init__(self):
+		pass
 
-	def create_model(self, inputs_seq_char, inputs_index_target, params, **unused_params):
+	def run_model(self, batch_seq_s, batch_target_idx, **unused_params):
 		raise NotImplementedError()
 
-class TargetSubtractionModel(BaseModel):
+class SylnerModel(BaseModel):
 	def __init__(self):
 		pass
 
-	def model_sylner(self, inputs_seq_char, inputs_index_target, params, **unused_params):
-		X = inputs_seq_char
-		index0, index1 = inputs_index_target
-		# Convert the raw input sequence into sequence of 3 channel embeddings
-		X1_including_target = tf.nn.embedding_lookup(embeddings_cho, X[-1, 0, :])
-		X2_including_target = tf.nn.embedding_lookup(embeddings_jung, X[-1, 1, :])
-		X3_including_target = tf.nn.embedding_lookup(embeddings_jong, X[-1, 2, :])
-
-		tf.zeros(shape, dtype=tf.float32)
-
-		X1_excluding_target = X1_including_target
-		X2_excluding_target = 
-		X3_excluding_target = 
-		# Do the same for target words
-		# X1_target = tf.nn.embedding_lookup(embeddings_cho, X[-1, 0, index0:index1])
-		# X2_target = tf.nn.embedding_lookup(embeddings_jung, X[-1, 1, index0:index1])
-		# X3_target = tf.nn.embedding_lookup(embeddings_jong, X[-1, 2, index0:index1])
-
-		X_context = tf.concatenate([X1_context, X2_context, X3_context])
-		X_target = tf.concatenate([X1_target, X2_target, X3_target])
-
-		# Convnets before entering 
-		x = tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
-		x = tf.nn.bias_add(x, b)
-
-		words_in_dataset = tf.placeholder(tf.float32, [num_batches, batch_size, num_features])
+	def run_model(self, batch_seq_s, batch_target_idx, **unused_params):
+		"""
+		args:
+			batch_seq_s 	: tf.placeholder, shape=[-1, max_length, 3]
+			batch_target_idx: tf.placeholder, shape=[-1, 2]
+			params 			:
+			**unused_params :
+		return:
+			pred 			: tensor, shape=[-1, number of classes]
+		"""
 		
-		# Feature generation including target word
-		lstm_cell = tf.contrib.rnn.BasicLSTMCell(size)
-		hidden_state = tf.zeros([batch_size, lstm.state_size])
-		current_state = tf.zeros([batch_size, lstm.state_size])
-		state = hidden_state, current_state
+		max_length = batch_seq_s,get_shape()[1] # length of the longest sentence in the dataset
+		dim_feature = 32
 
-		for current_batch_of_words in words_in_dataset:
-			# The value of state is updated after processing each batch of words.
-			output, state = lstm.call(current_batch_of_words, state)
+		# Parameters to Learn
+		params= {
+			'W_conv11': tf.Variable(tf.random_normal([3, 3, 1, 32]), name='W_conv11'),
+			'b_conv11': tf.Variable(tf.random_normal([32]), name='W_conv11'),
+			# dim_feature = 32
+		}
 
-			# The LSTM output can be used to make next word predictions
-			# logits = tf.matmul(output, softmax_w) + softmax_b
-			# probabilities.append(tf.nn.softmax(logits))
-			# loss += loss_function(probabilities, target_words)
 
-		# Feature generation excluding target word
-		for current_batch_of_words in words_in_dataset:
-			# The value of state is updated after processing each batch of words.
-			output, state = lstm.call(current_batch_of_words, state)
+		# Lookup part
+		batch_c0_embedded = tf.nn.embedding_lookup(embeddings_cho, batch_seq_s[:,:,0]) # [-1, max_length, 6*2]
+		batch_c1_embedded = tf.nn.embedding_lookup(embeddings_jung, batch_seq_s[:,:,1]) # [-1, max_length, 6*2]
+		batch_c2_embedded = tf.nn.embedding_lookup(embeddings_jong, batch_seq_s[:,:,2]) # [-1, max_length, 6*2]
 
-		vec_feature_including_target = 
-		vec_feature_excluding_target = 
-		vec_feature_diff = tf.subtract(vec_feature_including_target, vec_feature_excluding_target, name="subtraction")
+		batch_embedded = tf.concat([batch_c0_embedded,
+									batch_c1_embedded,
+									batch_c2_embedded]) # shape=[-1, max_length, 36]
 
-		fc = tf.add(tf.matmul(vec_feature_diff, params["fc1_W"]), params["fc1_b"])
-		fc = tf.contrib.layers.batch_norm(fc)
-		fc = tf.nn.relu(fc)
+		batch_conv = tf.reshape(batch_embedded, [-1, 6*6]) # shape=[-1*max_length, 36]
+		
+		# Conv part
+		s = tf.nn.conv2d(batch_conv, params["W_conv11"], strides=[1, 1, 1, 1], padding='SAME')
+		s = tf.nn.bias_add(s, params["b_conv11"])
+		s = tf.nn.max_pool(x, ksize=[1, 6, 6, 1], strides=[1, 6, 6, 1], padding='SAME')
 
-		fc = tf.add(tf.matmul(vec_feature_diff, params["fc2_W"]), params["fc2_b"])
-		fc = tf.contrib.layers.batch_norm(fc)
-		fc = tf.nn.relu(fc)
-		pred = fc # a tensor of shape [-1, 5]
+		batch_seq_embedded = tf.reshape(s, [-1, max_length, dim_feature]) # shape=[-1, max_length, frame_size]
+
+		# Bi-directional RNN part
+
+		# lstm_cell = tf.contrib.rnn.BasicLSTMCell(size)
+		# hidden_state = tf.zeros([batch_size, lstm.state_size])
+		# current_state = tf.zeros([batch_size, lstm.state_size])
+		# state = hidden_state, current_state
+		# output, state = lstm.call(arr_s, state)
+
+		output, state = tf.nn.dynamic_rnn(
+			tf.contrib.rnn.GRUCell(num_hidden),
+			batch_seq_embedded,
+			dtype=tf.float32,
+			sequence_length=length(batch_seq_embedded),
+		) # shape = [-1, max_length, output_size]
+
+		clipper = tf.zeros(output.get_shape) # shape = [-1, max_length, output_size]
+		for i, (idx0, idx1) in enumerate(batch_target_idx):
+			row_clipper = tf.zeros([idx0]) + tf.ones([idx1-idx0]) + tf.zeros([max_length])
+			clipper = tf.assign(clipper[i], row_clipper)
+		
+		pred_clipped = tf.multiply(output, clipper) # shape = [-1, max_length, output_size]
+		pred = tf.reduce(pred_char_sliced)
+		
+		# Conditional Random Field
+		# To be implemented
 		return pred
-	
-	
-
-class TargetAppendedModel(BaseModel):
-	def __init__(self):
-		pass
-
-	def model_sylner(self, inputs_seq_char, inputs_index_target, params, **unused_params):
-		X = inputs_seq_char
-		index0, index1 = inputs_index_target
-		# Convert the raw input sequence into sequence of 3 channel embeddings
-		X1_context = tf.nn.embedding_lookup(embeddings_cho, X[-1, 0, :])
-		X2_context = tf.nn.embedding_lookup(embeddings_jung, X[-1, 1, :])
-		X3_context = tf.nn.embedding_lookup(embeddings_jong, X[-1, 2, :])
-
-		# Do the same for target words
-		# X1_target = tf.nn.embedding_lookup(embeddings_cho, X[-1, 0, index0:index1])
-		# X2_target = tf.nn.embedding_lookup(embeddings_jung, X[-1, 1, index0:index1])
-		# X3_target = tf.nn.embedding_lookup(embeddings_jong, X[-1, 2, index0:index1])
