@@ -1,9 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import re
+import pickle, re
 
 import numpy as np
+
+import hangulvars
+
+BASE_CODE = hangulvars.BASE_CODE
+CHOSUNG = hangulvars.CHOSUNG
+JUNGSUNG = hangulvars.JUNGSUNG
+NONHANGUL_LIST = hangulvars.NONHANGUL_LIST
+CHOSUNG_LIST = hangulvars.CHOSUNG_LIST
+JUNGSUNG_LIST = hangulvars.JUNGSUNG_LIST
+JONGSUNG_LIST = hangulvars.JONGSUNG_LIST
+
+
 """
     초성 중성 종성 분리 하기
 	유니코드 한글은 0xAC00 으로부터
@@ -32,32 +44,32 @@ def decompose_syllable(syllable):
 
 	"""
 	# 유니코드 한글 시작 : 44032, 끝 : 55199
-	BASE_CODE, CHOSUNG, JUNGSUNG = 44032, 588, 28
+	# BASE_CODE, CHOSUNG, JUNGSUNG = 44032, 588, 28
 
-	NON_HANGUL = ["E","X","S","U","L","H","D",".",",","?","!","%","\"","\'","(",")","{","}","[","]","<",">","%","-","·",":","∼"]
+	# NONHANGUL_LIST = ["V","X","S","U","L","H","D",".",",","?","!","%","\"","\'","(",")","{","}","[","]","<",">","%","-","·",":","∼"]
 
-	# 초성 리스트. 00 ~ 18
-	CHOSUNG_LIST = NON_HANGUL + ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+	# # 초성 리스트. 00 ~ 18
+	# CHOSUNG_LIST = NONHANGUL_LIST + ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
-	# 중성 리스트. 00 ~ 20
-	JUNGSUNG_LIST = NON_HANGUL + ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
+	# # 중성 리스트. 00 ~ 20
+	# JUNGSUNG_LIST = NONHANGUL_LIST + ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
 
-	# 종성 리스트. 00 ~ 27 + 1(1개 없음)
-	JONGSUNG_LIST = NON_HANGUL +  [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+	# # 종성 리스트. 00 ~ 27 + 1(1개 없음)
+	# JONGSUNG_LIST = NONHANGUL_LIST +  [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
 	result = list()
 	# 한글 여부 check 후 분리
 	if re.match("[ㄱ-ㅣ가-힣]", syllable) is not None:
 		char_code = ord(syllable) - BASE_CODE
 		char1 = int(char_code / CHOSUNG)
-		# result.append(CHOSUNG_LIST[char1 + len(NON_HANGUL)])
-		result.append(char1 + len(NON_HANGUL))
+		# result.append(CHOSUNG_LIST[char1 + len(NONHANGUL_LIST)])
+		result.append(char1 + len(NONHANGUL_LIST))
 		char2 = int((char_code - (CHOSUNG * char1)) / JUNGSUNG)
-		# result.append(JUNGSUNG_LIST[char2 + len(NON_HANGUL)])
-		result.append(char2 + len(NON_HANGUL))
+		# result.append(JUNGSUNG_LIST[char2 + len(NONHANGUL_LIST)])
+		result.append(char2 + len(NONHANGUL_LIST))
 		char3 = int((char_code - (CHOSUNG * char1) - (JUNGSUNG * char2)))
-		# result.append(JONGSUNG_LIST[char3 + len(NON_HANGUL)])
-		result.append(char3 + len(NON_HANGUL))
+		# result.append(JONGSUNG_LIST[char3 + len(NONHANGUL_LIST)])
+		result.append(char3 + len(NONHANGUL_LIST))
 	else:
 		try:
 			result.append(CHOSUNG_LIST.index(syllable))
@@ -101,6 +113,8 @@ def write_data_ready(fpath_data_raw, fpath_data_ready):
 			sen_raw = re.sub(r"([\u4e00-\u9fff])", "H", sen_raw) # Hanja
 			sen_raw = re.sub(r"([0-9])", "D", sen_raw) # Digits
 			sen_raw = re.sub(r" ", "S", sen_raw) # Whitespace
+			# sen_raw = "B" + sen_raw + "E"
+			# print(sen_raw)
 
 			arr_index_target = generate_arr_index_target(sen_labelled)
 			for index_target in arr_index_target:
@@ -110,45 +124,52 @@ def write_data_ready(fpath_data_raw, fpath_data_ready):
 			
 			count += 1
 			line = fo.readline()
-
-		return (count, max(arr_len_seq)*3 + 2 + 5)
+		return (count, max(arr_len_seq))
 
 	with open(fpath_data_ready, "w", encoding="utf-8") as fo:
 		fo.write(str_fwrite)
 
 def digitize_data(fpath, shape_data):
 	arr_label = ['TI', 'OG', 'PS', 'LC', 'DT']
-	with open(fpath, "r", encoding="utf-8") as fo:
-		line = fo.readline()
-		
-		data = np.zeros(shape=shape_data, dtype=np.int32)
-		while len(line) > 0:
-			# Variable length data
+	with open(fpath, "r", encoding="utf-8") as fo:		
+		data = np.zeros(shape=(shape_data[0], shape_data[1]*(3+1) + 5), dtype=np.int32)
+		for i in range(shape_data[0]):
+			line = fo.readline()
 			sen_raw = line.split(";")[0]
 
 			print(sen_raw)
+
+			# Input row
 			seq_digitized = []
 			for x in sen_raw: seq_digitized += decompose_syllable(x)
-
 			seq_digitized = np.asarray(seq_digitized, dtype=np.int32)
-			zero_filler = np.zeros(shape=(shape_data[1] - seq_digitized.shape[0]))
-			
+			zero_filler = np.zeros(shape=(shape_data[1]*3 - seq_digitized.shape[0]))
+			X = np.hstack([seq_digitized, zero_filler])
 
-			# Fixed length data
-			idx_target = np.asarray([line.split(";")[1], line.split(";")[2]], dtype=np.int32)
+			# Clipper
+			zeros0 = np.zeros(shape=int(line.split(";")[1]))
+			ones = np.ones(shape=int(line.split(";")[2]) - int(line.split(";")[1]))
+			zeros1 = np.zeros(shape=shape_data[1]- int(line.split(";")[2]))
+			clipper = np.hstack([zeros0, ones, zeros1])
 			
+			# Label
 			label_onehot = [0 for i in range(len(arr_label))]
 			label_onehot[arr_label.index(line.split(";")[3].strip())] = 1
 			label_onehot = np.asarray(label_onehot, dtype=np.int32)
 
-			print(seq_digitized, idx_target, label_onehot)
-			record = np.hstack([seq_digitized, zero_filler, idx_target, label_onehot])
-			print(record)
-			line = fo.readline()
+			record = np.hstack([X, clipper, label_onehot])
+			data[i] = record
+	print(data.shape)
 	return data
+
+def write_pickle(data, fpath):	
+	with open(fpath, 'wb') as handle:
+		pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 fpath_data_raw = "../../dev-data/sylner/base_train_modified.csv"
 fpath_data_ready = "../../dev-data/sylner/base_train_ready.csv"
+fpath_pickle = "../../dev-data/sylner/base_train.pickle"
 
 shape_data = write_data_ready(fpath_data_raw, fpath_data_ready)
-digitize_data(fpath_data_ready, shape_data)
+data = digitize_data(fpath_data_ready, shape_data)
+write_pickle(data, fpath_pickle)
