@@ -106,6 +106,7 @@ def write_data_ready(fpath_data_raw, fpath_data_ready):
 		count = 0
 		while len(line) > 0:
 			sen_raw = line.split(";")[0]
+			print(sen_raw)
 			sen_labelled = line.split(";")[1]
 			
 			sen_raw = re.sub(r"([A-Z])", "U", sen_raw) # Uppercase letters
@@ -122,7 +123,7 @@ def write_data_ready(fpath_data_raw, fpath_data_ready):
 				# print(sen_raw[index_target[0]:index_target[1]], index_target[2])
 				arr_len_seq.append(len(sen_raw))
 			
-			count += 1
+				count += 1
 			line = fo.readline()
 		return (count, max(arr_len_seq))
 
@@ -137,7 +138,7 @@ def digitize_data(fpath, shape_data):
 			line = fo.readline()
 			sen_raw = line.split(";")[0]
 
-			print(sen_raw)
+			# print(sen_raw)
 
 			# Input row
 			seq_digitized = []

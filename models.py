@@ -45,7 +45,7 @@ class SylnerModel(BaseModel):
 		batch_size = batch_seq_s.get_shape()[0]
 		max_length = int(batch_seq_s.get_shape()[1]) # length of the longest sentence in the dataset
 		print(batch_size, max_length)
-		dim_feature = 32
+		
 
 		# Parameters to Learn
 		dim_embed = 12
@@ -77,29 +77,38 @@ class SylnerModel(BaseModel):
 		s = tf.nn.bias_add(s, params["b_conv11"])
 		s = tf.nn.max_pool(s, ksize=[1, 6, 6, 1], strides=[1, 6, 6, 1], padding='SAME')
 
+		dim_feature = 32
 		batch_seq_embedded = tf.reshape(s, [-1, max_length, dim_feature]) # shape=[-1, max_length, frame_size]
 
 		# Bi-directional RNN part
-
-		# lstm_cell = tf.contrib.rnn.BasicLSTMCell(size)
-		# hidden_state = tf.zeros([batch_size, lstm.state_size])
-		# current_state = tf.zeros([batch_size, lstm.state_size])
-		# state = hidden_state, current_state
-		# output, state = lstm.call(arr_s, state)
-		num_hidden = 5
-
-		output, state = tf.nn.dynamic_rnn(
-			tf.contrib.rnn.GRUCell(num_hidden),
-			batch_seq_embedded,
-			dtype=tf.float32,
-			#sequence_length=max_length#len(batch_seq_embedded),
-		) # shape = [-1, max_length, output_size]
+		with tf.variable_scope("GRULayer1"):
+			cell_fw = tf.nn.rnn_cell.GRUCell(20)
+			# output1, state1 = tf.nn.dynamic_rnn(cell_fw, batch_seq_embedded, dtype=tf.float32)
 		
-		batch_clipper_expanded = tf.stack([batch_clipper]*5, axis=2)
-		print(batch_clipper_expanded)
+		with tf.variable_scope("GRULayer2"):
+			cell_bw = tf.nn.rnn_cell.GRUCell(20)
+			# output, state2 = tf.nn.dynamic_rnn(cell_bw, output1, dtype=tf.float32)
 
+		with tf.variable_scope("GRULayer3"):
+			cell_end = tf.nn.rnn_cell.GRUCell(5)
+
+		output, state = tf.nn.bidirectional_dynamic_rnn(cell_fw,
+														cell_bw,
+														batch_seq_embedded,
+														dtype=tf.float32,
+														scope=None)
+		print(output[0].shape, output[1].shape)
+		output_concat = tf.concat(output, axis=2)
+		print(output_concat.shape)
+
+		output, state2 = tf.nn.dynamic_rnn(cell_end, output_concat, dtype=tf.float32)
+
+		# W_proj = tf.Variable(tf.random_normal([20*2, 5]), name='W_proj')
+
+		# output = tf.matmul(output_concat, W_proj*int(output_concat.shape[1]))
+
+		batch_clipper_expanded = tf.stack([batch_clipper]*5, axis=2)
 		pred_clipped = tf.multiply(output, batch_clipper_expanded) # shape = [-1, max_length, output_size]
-		print(pred_clipped)
 		pred = tf.reduce_sum(pred_clipped, axis=1)
 		print(pred)
 		
