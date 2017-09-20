@@ -80,6 +80,8 @@ def decompose_syllable(syllable):
 
 	return result
 
+
+
 def generate_arr_index_target(sen_labelled):
 	arr_index_target = []
 	padding = 0
@@ -96,39 +98,64 @@ def generate_arr_index_target(sen_labelled):
 			padding += 3 + len(label)
 		except ValueError:
 			break
+		# except IndexError as e:
+		# 	print(e)
 	return arr_index_target
 
-def write_data_ready(fpath_data_raw, fpath_data_ready):
-	with open(fpath_data_raw, "r") as fo:
-		str_fwrite = ""
+def reformat_data(fpath_data_original):
+	with open(fpath_data_original) as fo:
+		arr_rec = []
 		line = fo.readline()
-		arr_len_seq = []
-		count = 0
 		while len(line) > 0:
-			sen_raw = line.split(";")[0]
-			print(sen_raw)
-			sen_labelled = line.split(";")[1]
-			
-			sen_raw = re.sub(r"([A-Z])", "U", sen_raw) # Uppercase letters
-			sen_raw = re.sub(r"([a-z])", "L", sen_raw) # Lowercase letters
-			sen_raw = re.sub(r"([\u4e00-\u9fff])", "H", sen_raw) # Hanja
-			sen_raw = re.sub(r"([0-9])", "D", sen_raw) # Digits
-			sen_raw = re.sub(r" ", "S", sen_raw) # Whitespace
-			# sen_raw = "B" + sen_raw + "E"
-			# print(sen_raw)
-
-			arr_index_target = generate_arr_index_target(sen_labelled)
-			for index_target in arr_index_target:
-				str_fwrite = "{0}{1};{2};{3};{4}\n".format(str_fwrite, sen_raw, index_target[0], index_target[1], index_target[2])
-				# print(sen_raw[index_target[0]:index_target[1]], index_target[2])
-				arr_len_seq.append(len(sen_raw))
-			
-				count += 1
+			if line[0] in [";","$"]: arr_rec.append(line)
 			line = fo.readline()
-		return (count, max(arr_len_seq))
 
+		# print(range(len(arr_rec), 2))
+		arr_rec_a = []
+		for i in range(0, len(arr_rec), 2):
+			x1 = arr_rec[i][2:].strip()
+			x2 = arr_rec[i+1][1:].strip()
+			if "<" not in x1: arr_rec_a.append([x1,x2])
+
+		return arr_rec_a
+		# return (count, max(arr_len_seq))
+
+def write_data_ready(arr_rec_a, fpath_data_ready):
+# def write_data_ready(fpath_data_raw, fpath_data_ready):
+	# with open(fpath_data_raw, "r") as fo:
+	str_fwrite = ""
+	# line = fo.readline()
+	arr_len_seq = []
+	count = 0
+	# while len(line) > 0:
+	# 	sen_raw = line.split(";")[0]
+	# 	print(sen_raw)
+	# 	sen_labelled = line.split(";")[1]
+	
+	for rec in arr_rec_a:
+		sen_raw, sen_labelled = rec[0], rec[1]
+		# print(sen_raw, sen_labelled)
+		sen_raw = re.sub(r"([A-Z])", "U", sen_raw) # Uppercase letters
+		sen_raw = re.sub(r"([a-z])", "L", sen_raw) # Lowercase letters
+		sen_raw = re.sub(r"([\u4e00-\u9fff])", "H", sen_raw) # Hanja
+		sen_raw = re.sub(r"([0-9])", "D", sen_raw) # Digits
+		sen_raw = re.sub(r" ", "S", sen_raw) # Whitespace
+		# sen_raw = "B" + sen_raw + "E"
+		# print(sen_raw)
+
+		arr_index_target = generate_arr_index_target(sen_labelled)
+		for index_target in arr_index_target:
+			str_fwrite = "{0}{1};{2};{3};{4}\n".format(str_fwrite, sen_raw, index_target[0], index_target[1], index_target[2])
+			# print(sen_raw[index_target[0]:index_target[1]], index_target[2])
+			arr_len_seq.append(len(sen_raw))
+		
+			count += 1
+		# line = fo.readline()
 	with open(fpath_data_ready, "w", encoding="utf-8") as fo:
 		fo.write(str_fwrite)
+	
+	return (count, max(arr_len_seq))
+
 
 def digitize_data(fpath, shape_data):
 	arr_label = ['TI', 'OG', 'PS', 'LC', 'DT']
@@ -160,17 +187,21 @@ def digitize_data(fpath, shape_data):
 
 			record = np.hstack([X, clipper, label_onehot])
 			data[i] = record
-	print(data.shape)
 	return data
 
 def write_pickle(data, fpath):	
 	with open(fpath, 'wb') as handle:
 		pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+fpath_data_original = "../../dev-data/sylner/2016klpNER.base_train"
 fpath_data_raw = "../../dev-data/sylner/base_train_modified.csv"
 fpath_data_ready = "../../dev-data/sylner/base_train_ready.csv"
 fpath_pickle = "../../dev-data/sylner/base_train.pickle"
 
-shape_data = write_data_ready(fpath_data_raw, fpath_data_ready)
+arr_rec = reformat_data(fpath_data_original)
+# shape_data = write_data_ready(fpath_data_raw, fpath_data_ready)
+shape_data = write_data_ready(arr_rec, fpath_data_ready)
+print(shape_data)
 data = digitize_data(fpath_data_ready, shape_data)
+print(data.shape)
 write_pickle(data, fpath_pickle)

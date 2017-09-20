@@ -60,7 +60,7 @@ with graph.as_default():
 	count_step = tf.Variable(0, name="count_step")
 	
 	FLAGS.batch_size
-	max_length = 217 # Temporary hard coding
+	max_length = 341 # Temporary hard coding
 
 	batch_seq_s = tf.placeholder(tf.int32, shape=[None, max_length, 3])
 	batch_clipper = tf.placeholder(tf.float32, shape=[None, max_length])
@@ -92,8 +92,8 @@ def main(unused_argv):
 
 	data = read_data("../../dev-data/sylner/base_train.pickle")
 	print(data.shape)
-	data_train = data[:350]
-	data_eval = data[350:]
+	data_train = data[:1000]
+	data_eval = data[1000:]
 
 	# Run session
 	with tf.Session(graph=graph, config=config) as sess:
