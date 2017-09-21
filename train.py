@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import built-in packages
-from functools import reduce
-import pickle, time
+import os, pickle, time
 
 # Import external packages
 import numpy as np
@@ -11,6 +10,7 @@ import tensorflow as tf
 
 from models import SylnerModel
 import hangulvars 
+import utils
 
 BASE_CODE = hangulvars.BASE_CODE
 CHOSUNG = hangulvars.CHOSUNG
@@ -26,14 +26,7 @@ tf.flags.DEFINE_string("logdir", "./logs", "The directory to save the model file
 tf.flags.DEFINE_integer("batch_size", 64, "How many examples to process per batch for training and evaluation")
 tf.flags.DEFINE_integer("num_class", 5, "How many examples to process per batch for training and evaluation")
 tf.flags.DEFINE_integer("num_steps", 1000, "How many times to update weights")
-tf.flags.DEFINE_integer("learning_rate", 0.001, "Learning rate, epsilon")
-
-
-def read_data(fpath_data):
-	with open(fpath_data, "rb") as fo:
-		data = pickle.load(fo)
-		# np.random.shuffle(data)
-	return data
+tf.flags.DEFINE_float("learning_rate", 0.001, "Learning rate, epsilon")
 
 def feed_data(data, batch_size, num_class):
 	np.random.shuffle(data)
@@ -90,17 +83,16 @@ def main(unused_argv):
 	config = tf.ConfigProto()
 	config.gpu_options.allow_growth = True
 
-	data = read_data("../../dev-data/sylner/base_train.pickle")
+	data = utils.read_data("../../dev-data/sylner/base_train.pickle")
 	print(data.shape)
-	data_train = data[:1000]
-	data_eval = data[1000:]
+	data_train = data[:5000]
+	data_eval = data[5000:]
 
 	# Run session
 	with tf.Session(graph=graph, config=config) as sess:
 		tf.global_variables_initializer().run()
-		summaries_dir = './logs'
-		train_writer = tf.summary.FileWriter(summaries_dir + '/train', sess.graph)
-		test_writer = tf.summary.FileWriter(summaries_dir + '/test', sess.graph)
+		train_writer = tf.summary.FileWriter(os.path.join(FLAGS.logdir, "train"), sess.graph)
+		test_writer = tf.summary.FileWriter(os.path.join(FLAGS.logdir, "test"), sess.graph)
 
 		num_steps = FLAGS.num_steps
 		batch_size = FLAGS.batch_size
@@ -108,14 +100,14 @@ def main(unused_argv):
 
 		# Load Checkpoint Data
 		try:
-			saver.restore(sess, './{}/checkpoint.ckpt'.format(FLAGS.logdir))
+			saver.restore(sess, './{0}/checkpoint.ckpt'.format(FLAGS.logdir))
 			print('Model restored')
 			epoch_saved = count_step.eval()
 		except tf.errors.NotFoundError:
 			print('No saved model found')
 			epoch_saved = 0
 		except tf.errors.InvalidArgumentError:
-			print('Model structure has change. Rebuild model')
+			print('Model structure has been changed. Rebuild model')
 			epoch_saved = 0
 
 		# Train Loop

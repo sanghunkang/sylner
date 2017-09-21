@@ -24,6 +24,9 @@ Some symbols are assumed to be the same. For instance, quotes and double quotes,
 * Each position (consonant1, vowel, consonant2) is only a channel of a syllable . To put it into an implementation, we used 1d convolution of 3 channels at input stage. 
 * Each potision is somehow related to sounds of other positions. To  ... we used 2d convolution on feeding inputs into networks.
 
+####
+Chinese characters are symbolic. Each letter on its own contains some meaning. However, the size of the vocabulary is huge.  We can partly appropriate the advantage of Chinese writing system but succesfully avoid the problem of estimating a huge dimension matrix by constructing a syllable with three subsounds.
+
 
 ####
 * Input: Sentence/Position(Index + length)

@@ -8,7 +8,7 @@ from functools import reduce
 import numpy as np
 import tensorflow as tf
 
-import hangulvars
+import hangulvars, utils
 
 BASE_CODE = hangulvars.BASE_CODE
 CHOSUNG = hangulvars.CHOSUNG
@@ -53,11 +53,9 @@ class SylnerModel(BaseModel):
 		embedding_jung = tf.Variable(tf.random_uniform([len(JUNGSUNG_LIST), dim_embed], -1.0, 1.0), name="embeddings_jung")
 		embedding_jong = tf.Variable(tf.random_uniform([len(JONGSUNG_LIST), dim_embed], -1.0, 1.0), name="embeddings_jong")
 
-		params= {
-			'W_conv11': tf.Variable(tf.random_normal([3, 3, 1, 32]), name='W_conv11'),
-			'b_conv11': tf.Variable(tf.random_normal([32]), name='W_conv11'),
-			# dim_feature = 32
-		}
+		dim_feature = 32
+		W_conv = tf.Variable(tf.random_normal([3, 3, 1, dim_feature]), name='W_conv11')
+		b_conv = tf.Variable(tf.random_normal([dim_feature]), name='W_conv11')
 
 
 		# Lookup part
@@ -68,25 +66,30 @@ class SylnerModel(BaseModel):
 		batch_embedded = tf.concat([batch_c0_embedded,
 									batch_c1_embedded,
 									batch_c2_embedded], axis=2) # shape=[-1, max_length, 36]
+		print(batch_embedded.get_shape())
 
 		batch_conv = tf.reshape(batch_embedded, [-1, 6*6]) # shape=[-1*max_length, 36]
+		print(batch_conv.get_shape())
 		batch_conv = tf.reshape(batch_conv, [-1, 6, 6, 1])
+		print(batch_conv.get_shape())
 		
 		# Conv part
-		s = tf.nn.conv2d(batch_conv, params["W_conv11"], strides=[1, 1, 1, 1], padding='SAME')
-		s = tf.nn.bias_add(s, params["b_conv11"])
+		s = tf.nn.conv2d(batch_conv, W_conv, strides=[1, 1, 1, 1], padding='SAME')
+		s = tf.nn.bias_add(s, b_conv)
 		s = tf.nn.max_pool(s, ksize=[1, 6, 6, 1], strides=[1, 6, 6, 1], padding='SAME')
 
-		dim_feature = 32
+		
 		batch_seq_embedded = tf.reshape(s, [-1, max_length, dim_feature]) # shape=[-1, max_length, frame_size]
 
 		# Bi-directional RNN part
 		with tf.variable_scope("GRULayer1"):
-			cell_fw = tf.nn.rnn_cell.GRUCell(20)
+			# cell_fw = tf.nn.rnn_cell.GRUCell(30)
+			cell_fw = tf.nn.rnn_cell.GRUCell(32)
 			# output1, state1 = tf.nn.dynamic_rnn(cell_fw, batch_seq_embedded, dtype=tf.float32)
 		
 		with tf.variable_scope("GRULayer2"):
-			cell_bw = tf.nn.rnn_cell.GRUCell(20)
+			# cell_bw = tf.nn.rnn_cell.GRUCell(30)
+			cell_bw = tf.nn.rnn_cell.GRUCell(32)
 			# output, state2 = tf.nn.dynamic_rnn(cell_bw, output1, dtype=tf.float32)
 
 		with tf.variable_scope("GRULayer3"):
@@ -102,10 +105,6 @@ class SylnerModel(BaseModel):
 		print(output_concat.shape)
 
 		output, state2 = tf.nn.dynamic_rnn(cell_end, output_concat, dtype=tf.float32)
-
-		# W_proj = tf.Variable(tf.random_normal([20*2, 5]), name='W_proj')
-
-		# output = tf.matmul(output_concat, W_proj*int(output_concat.shape[1]))
 
 		batch_clipper_expanded = tf.stack([batch_clipper]*5, axis=2)
 		pred_clipped = tf.multiply(output, batch_clipper_expanded) # shape = [-1, max_length, output_size]
