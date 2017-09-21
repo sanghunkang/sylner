@@ -20,7 +20,7 @@ JUNGSUNG_LIST = hangulvars.JUNGSUNG_LIST
 JONGSUNG_LIST = hangulvars.JONGSUNG_LIST
 
 FLAGS = tf.flags.FLAGS
-tf.flags.DEFINE_string("fpath_data", "../../dev-data/sylner/base_train.pickle", "The directory to save the model files in.")
+tf.flags.DEFINE_string("fpath_data_deploy", "../../dev-data/sylner/2016klpNER.base_train_eval", "The directory to save the model files in.")
 tf.flags.DEFINE_string("logdir", "./logs", "The directory to save the model files in.")
 tf.flags.DEFINE_integer("num_class", 5, "How many examples to process per batch for training and evaluation")
 tf.flags.DEFINE_integer("num_steps", 1000, "How many times to update weights")
@@ -81,17 +81,15 @@ def main(unused_argv):
 		tf.global_variables_initializer().run()
 
 		num_class = FLAGS.num_class
-		# data = utils.nikl_to_nparray("../../dev-data/sylner/2016klpNER.base_train")
-		data, arr_rec_str = utils.nikl_to_nparray("../../dev-data/sylner/2016klpNER.base_train")
-		
+		data, arr_rec_str = utils.nikl_to_nparray(FLAGS.fpath_data_deploy)
+		print(data.shape)
 		# Load Checkpoint Data
 		saver.restore(sess, './{0}/checkpoint.ckpt'.format(FLAGS.logdir))
 
 		accu, pred_print, labels_print = sess.run([accuracy, pred, batch_labels], feed_dict=feed_data(data, data.shape[0], num_class))
 		pp, lp = np.argmax(pred_print, axis=1), np.argmax(labels_print, axis=1)
-		# print(np.hstack([pred_print, labels_print]))
 		
-		for i in range(data.shape[0]):
+		for i in range(data.shape[0] - 100, data.shape[0]):
 			print(arr_rec_str[i], pp[i], lp[i])
 
 		for tag in range(5):

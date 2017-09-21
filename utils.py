@@ -158,9 +158,12 @@ def nikl_to_nparray(fpath):
 
 	arr_rec_str = str_fwrite.split("\n")[:-1]
 	data = digitize_data(arr_rec_str, shape_data)
-	return data[:1000], arr_rec_str[:1000]
-	# return data[-1000:], arr_rec_str[-1000:]
+	# return data
+	return data, arr_rec_str
 
 def write_pickle(data, fpath):
 	with open(fpath, 'wb') as handle:
 		pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+# data_train, _  = nikl_to_nparray("../../dev-data/sylner/2016klpNER.base_train")
+# print(data_train.shape)

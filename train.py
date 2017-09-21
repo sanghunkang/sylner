@@ -21,12 +21,14 @@ JUNGSUNG_LIST = hangulvars.JUNGSUNG_LIST
 JONGSUNG_LIST = hangulvars.JONGSUNG_LIST
 
 FLAGS = tf.flags.FLAGS
-tf.flags.DEFINE_string("fpath_data", "../../dev-data/sylner/base_train.pickle", "The directory to save the model files in.")
+tf.flags.DEFINE_string("fpath_data_train", "../../dev-data/sylner/2016klpNER.base_train_train", "The directory to save the model files in.")
+tf.flags.DEFINE_string("fpath_data_eval", "../../dev-data/sylner/2016klpNER.base_train_eval", "The directory to save the model files in.")
 tf.flags.DEFINE_string("logdir", "./logs", "The directory to save the model files in.")
 tf.flags.DEFINE_integer("batch_size", 64, "How many examples to process per batch for training and evaluation")
 tf.flags.DEFINE_integer("num_class", 5, "How many examples to process per batch for training and evaluation")
 tf.flags.DEFINE_integer("num_steps", 1000, "How many times to update weights")
 tf.flags.DEFINE_float("learning_rate", 0.001, "Learning rate, epsilon")
+print(FLAGS)
 
 def feed_data(data, batch_size, num_class):
 	np.random.shuffle(data)
@@ -83,10 +85,12 @@ def main(unused_argv):
 	config = tf.ConfigProto()
 	config.gpu_options.allow_growth = True
 
-	data = utils.read_data("../../dev-data/sylner/base_train.pickle")
-	print(data.shape)
-	data_train = data[:5000]
-	data_eval = data[5000:]
+
+	data_train, _  = utils.nikl_to_nparray(FLAGS.fpath_data_train)
+	data_eval, _  = utils.nikl_to_nparray(FLAGS.fpath_data_eval)
+	# data = utils.read_data("../../dev-data/sylner/base_train.pickle")
+	print(data_train.shape)
+	print(data_eval.shape)
 
 	# Run session
 	with tf.Session(graph=graph, config=config) as sess:
@@ -118,6 +122,7 @@ def main(unused_argv):
 
 			summary, acc_test = sess.run([merged, accuracy], feed_dict=feed_data(data_eval, batch_size, num_class))
 			test_writer.add_summary(summary, epoch)
+			# print("Epoch {0}: Loss= {1:.6f}, Train Accuracy= {2:.5f}".format(epoch, loss_train, acc_train))
 			print("Epoch {0}: Loss= {1:.6f}, Train Accuracy= {2:.5f}, Validation Accuracy= {3:.5f}".format(epoch, loss_train, acc_train, acc_test))
 
 		print("Optimisation Finished!")
