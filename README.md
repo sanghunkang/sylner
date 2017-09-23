@@ -1,8 +1,9 @@
-# sylner
-(Potential) Submission to 2017KLExpo
+# SylNER: Syllable-based Named Entity Recognition for Korean Language
+Submission to 2017 Korean Language Expo
 
 #### Acknowledgement
 (https://github.com/neotune/python-korean-handler)
+Here I could borrow a handy function to decompose syllables into characters.
 
 #### Description
 Korean language is a morphologically rich length, to the extent, that in case of "hyeongyongsa" - which correspond to combination of a be-verb and an adjective in English language - and "dongsa" - which corresponds to verb in English language.  But combination of "josa"s - which in most cases act as an prepositiom...
@@ -11,6 +12,8 @@ Real-time implementation of NLP requires less computing  . It is an issue espe  
 
 This technical environment demand us a task of escaping from "morpheme first -> that do whatever" protocol in Korean natural language processing. The main contribution of this research was intended to handle this issue. The research is inspired by [Kim et al. 2015](somelink), which gave us some hint to completely exclude usage of POS taggers and morpheme taggers, plus the representation format of Korean language called "Hangul".
 
+#### Some Fun
+For instance, my name looks like this.
 
 To keep the integrity of our of research, we rendered the provided dataset  to fit..
 
