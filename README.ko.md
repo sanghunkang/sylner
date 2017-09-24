@@ -1,26 +1,14 @@
-[한국어 README](./README.ko.md)
-# SylNER: Syllable-based Named Entity Recognition for Korean Language
-[sylner](./sylner.png)
-Submission to 2017 Korean Language Expo
+# SylNER: 한국어 음절기반 개체명인식 프로그램
+2017국어정보처리경진대회 출품작
+
+[English README](./README.md)
 
 #### Acknowledgement
 (https://github.com/neotune/python-korean-handler)
-Here, I could borrow a handy function to decompose syllables into characters.
-([Kim et al. 2015](somelink))
-This is where our most inspiration is from.
-
-#### Dependencies
-* Python 3.5.3 
-* TensorFlow 1.3 or higher
-* Numpy 1.13.1 or higher
-* Matplolib 2.0.2 or higher
+Here I could borrow a handy function to decompose syllables into characters.
 
 #### Description
-More solid(?) article-style explanation can be found at ()(English) and ()(Korean)
-Korean language is a morphologically rich length, to the extent, that in case of "hyeongyongsa" - which correspond to combination of a be-verb and an adjective in English language - and "dongsa" - which corresponds to verb in English language.  But combination of "josa"s - which in most cases act as an prepositiom... The task our model is doing is called "Named Entity Recognition". So the part "NER" of our model was undisputable. 
-
-#### Usage
-There's a copyright issue regarding the data  . The dataset is provided by ... if you with to recall the test, you may contact (2017klexpo@...com)
+Korean language is a morphologically rich length, to the extent, that in case of "hyeongyongsa" - which correspond to combination of a be-verb and an adjective in English language - and "dongsa" - which corresponds to verb in English language.  But combination of "josa"s - which in most cases act as an prepositiom...
 
 Real-time implementation of NLP requires less computing  . It is an issue espe  .. Since most of the so called POS(Part of Speach) taggers rely on  . But the latest implementations of computerised language processing utilise GPU, which run best when external pacakges are excluded in implementations as much as possibile. It is generally regarded as a slowing factor to use high-level wrappers in implementations of deep learning algo
 
@@ -29,11 +17,12 @@ This technical environment demand us a task of escaping from "morpheme first -> 
 #### Usage
 ###### Ubuntu (not tested, but presumably in OS X as well)
 ```
-python3 train.py --fpath_data_train=/path/to/trainset --fpath_data_eval=/path/to/trainset --logdir=/path/to/logs
+python --
 ```
-Of course you may confer ```-f```flags for details
 training p-
-The organiser of the contest doesn't seem to want to make public of the data it provided for the contest. For more information, please contact 
+The organiser of the contest doesn't seem to want to make public of the data it provided for the contest. For more information, please contact 2017klexpo@...com
+
+###### Windows
 
 #### Some Fun
 For instance, my name looks like this.
