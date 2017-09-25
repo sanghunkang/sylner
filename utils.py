@@ -103,9 +103,11 @@ def write_data_ready(arr_rec_a):
 	str_fwrite = ""
 	arr_len_seq = []
 	count = 0
+	arr_recrec = []
 	
 	for rec in arr_rec_a:
 		sen_raw, sen_labelled = rec[0], rec[1]
+		sen_raw_preserved = sen_raw
 		sen_raw = re.sub(r"([A-Z])", "U", sen_raw) # Uppercase letters
 		sen_raw = re.sub(r"([a-z])", "L", sen_raw) # Lowercase letters
 		sen_raw = re.sub(r"([\u4e00-\u9fff])", "H", sen_raw) # Hanja
@@ -117,10 +119,11 @@ def write_data_ready(arr_rec_a):
 		arr_index_target = generate_arr_index_target(sen_labelled)
 		for index_target in arr_index_target:
 			str_fwrite = "{0}{1};{2};{3};{4}\n".format(str_fwrite, sen_raw, index_target[0], index_target[1], index_target[2])
-			arr_len_seq.append(len(sen_raw))		
+			arr_len_seq.append(len(sen_raw))
+			arr_recrec.append(sen_raw_preserved)		
 			count += 1
 	shape_data = (count, 341)
-	return shape_data, str_fwrite
+	return shape_data, str_fwrite, arr_recrec
 
 def digitize_data(arr_rec_str, shape_data):
 	arr_label = ['TI', 'OG', 'PS', 'LC', 'DT']
@@ -154,12 +157,12 @@ def digitize_data(arr_rec_str, shape_data):
 
 def nikl_to_nparray(fpath):
 	arr_rec = reformat_data(fpath)
-	shape_data, str_fwrite = write_data_ready(arr_rec)
+	shape_data, str_fwrite, arr_recrec = write_data_ready(arr_rec)
 
 	arr_rec_str = str_fwrite.split("\n")[:-1]
 	data = digitize_data(arr_rec_str, shape_data)
 	# return data
-	return data, arr_rec_str
+	return data, arr_rec_str, arr_recrec
 
 def write_pickle(data, fpath):
 	with open(fpath, 'wb') as handle:

@@ -1,51 +1,18 @@
 # SylNER: 한국어 음절기반 개체명인식 프로그램
-2017국어정보처리경진대회 출품작
-
-[English README](./README.md)
+2017국어정보처리경진대회 출품작. [English README](./README.md)
+<p align="center">
+<img src="./sylner.png" width="300" height="200" align="center">
+</p>
+위의 이미지는 "실너"를 SylNER를 통해 이미지화 시킨 결과입니다.
 
 #### Acknowledgement
 (https://github.com/neotune/python-korean-handler)
-Here I could borrow a handy function to decompose syllables into characters.
+한국어음절을 음소로 분해하는 편리한 함수를 빌려왔습니다.
 
-#### Description
-Korean language is a morphologically rich length, to the extent, that in case of "hyeongyongsa" - which correspond to combination of a be-verb and an adjective in English language - and "dongsa" - which corresponds to verb in English language.  But combination of "josa"s - which in most cases act as an prepositiom...
-
-Real-time implementation of NLP requires less computing  . It is an issue espe  .. Since most of the so called POS(Part of Speach) taggers rely on  . But the latest implementations of computerised language processing utilise GPU, which run best when external pacakges are excluded in implementations as much as possibile. It is generally regarded as a slowing factor to use high-level wrappers in implementations of deep learning algo
-
-This technical environment demand us a task of escaping from "morpheme first -> that do whatever" protocol in Korean natural language processing. The main contribution of this research was intended to handle this issue. The research is inspired by [Kim et al. 2015](somelink), which gave us some hint to completely exclude usage of POS taggers and morpheme taggers, plus the representation format of Korean language called "Hangul".
-
-#### Usage
-###### Ubuntu (not tested, but presumably in OS X as well)
-```
-python --
-```
-training p-
-The organiser of the contest doesn't seem to want to make public of the data it provided for the contest. For more information, please contact 2017klexpo@...com
-
-###### Windows
-
-#### Some Fun
-For instance, my name looks like this.
-
-To keep the integrity of our of research, we rendered the provided dataset  to fit..
-
-Chinese characters are converted into Korean letters with corresponding pronunciations to
-Roman alphabets ...?
-Numbers are converted into Korean letters with corresponding pronunciations to Chinese style of reading such numbers
-Quotes, commas, periods, spaces, are repla ... That whenever... Basically in any sound-representing languages, every token has some effect on physical pronunciation. For instance, spaces usually indicate a point to brethee, the existance of comma may result in extra pause between spaces, quotes   .   Depending on the specific settings of ... we implemeted each mark slightly differently, but the baseline was to associate each symbol to a single syllable.
-Some symbols are assumed to be the same. For instance, quotes and double quotes, parentheses and brackets.
-
-
-* Each position (consonant1, vowel, consonant2) is only a channel of a syllable . To put it into an implementation, we used 1d convolution of 3 channels at input stage. 
-* Each potision is somehow related to sounds of other positions. To  ... we used 2d convolution on feeding inputs into networks.
-
-####
-Chinese characters are symbolic. Each letter on its own contains some meaning. However, the size of the vocabulary is huge.  We can partly appropriate the advantage of Chinese writing system but succesfully avoid the problem of estimating a huge dimension matrix by constructing a syllable with three subsounds.
-
-
-####
-* Input: Sentence/Position(Index + length)
-* Output: Probability that a word belongs to the category
-
+#### 호환성
+* Python 3.5.3 
+* TensorFlow 1.3 이상
+* Numpy 1.13.1 or 이상
+* Matplolib 2.0.2 이상
 
 

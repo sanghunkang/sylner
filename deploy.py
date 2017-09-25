@@ -46,7 +46,7 @@ with graph.as_default():
 
 	# Hyperparameters
 
-	# tf Graph input
+	# tf Graph input	
 	num_class = FLAGS.num_class # Normal or Abnormal
 
 	# Placeholders
@@ -81,7 +81,7 @@ def main(unused_argv):
 		tf.global_variables_initializer().run()
 
 		num_class = FLAGS.num_class
-		data, arr_rec_str = utils.nikl_to_nparray(FLAGS.fpath_data_deploy)
+		data, arr_rec_str, arr_recrec = utils.nikl_to_nparray(FLAGS.fpath_data_deploy)
 		print(data.shape)
 		# Load Checkpoint Data
 		saver.restore(sess, './{0}/checkpoint.ckpt'.format(FLAGS.logdir))
@@ -89,20 +89,29 @@ def main(unused_argv):
 		accu, pred_print, labels_print = sess.run([accuracy, pred, batch_labels], feed_dict=feed_data(data, data.shape[0], num_class))
 		pp, lp = np.argmax(pred_print, axis=1), np.argmax(labels_print, axis=1)
 		
-		for i in range(data.shape[0] - 100, data.shape[0]):
-			print(arr_rec_str[i], pp[i], lp[i])
+		for i in range(data.shape[0]):
+		# for i in range(data.shape[0] - 100, data.shape[0]):
+			arr_labels = ['TI', 'OG', 'PS', 'LC', 'DT']
+			label_pred = arr_labels[pp[i]]
+			label_true = arr_labels[lp[i]]
+			# print(arr_rec_str[i], arr_recrec[i], pp[i], lp[i])
+			idx0 = arr_rec_str[i].split(";")[1]
+			idx1 = arr_rec_str[i].split(";")[2]
+			print("Input: Sentence={0} :: Target={1}:{2} [{3}]".format(arr_recrec[i], idx0, idx1, arr_recrec[i][int(idx0):int(idx1)]))
+			print("Output: Prediction:{0}, True:{1}".format(label_pred, label_true))
+			print() 
 
 		for tag in range(5):
-			count_precision = 0
-			base_precision = 0
+			count_precision = 0 + 0.00001
+			base_precision = 0 + 0.00001
 			for i in range(data.shape[0]):
 				if pp[i] == tag:
 					base_precision += 1
 					if pp[i] == lp[i]: count_precision += 1
 			precision = count_precision/base_precision
 			
-			count_recall = 0
-			base_recall = 0
+			count_recall = 0 + 0.00001
+			base_recall = 0 + 0.00001
 			for i in range(data.shape[0]):
 				if lp[i] == tag:
 					base_recall += 1
